@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+ 
+Parameters:
+  Subdomain:
+    Type: String
+  DNSRecordType:
+    Type: String
+    Default: "CNAME"
+  DNSNameToCname:
+    Type: String
+ 
+Resources:
+  InternalCnameRecord:
+    Type: "AWS::Route53::RecordSet"
+    Properties: 
+      HostedZoneName: !Join ['', [!Ref Subdomain, "."]]
+      Name: !Join ['', [!Ref Subdomain, "."]]
+      Type: !Ref DNSRecordType
+      TTL: '60'
+      ResourceRecords:
+        - !Ref DNSNameToCname
