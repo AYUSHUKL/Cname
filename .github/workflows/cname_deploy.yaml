@@ -16,7 +16,7 @@ on:
         description: 'Product Version'
         required: true
       general_configuration:
-        description: 'General Configuration'
+        description: 'Routing Policy'
         required: true
       subdomain:
         description: 'Subdomain for the CNAME'
