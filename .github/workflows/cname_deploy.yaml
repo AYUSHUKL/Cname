@@ -1,0 +1,64 @@
+name: Deploy Route 53 CNAME Record
+ 
+on:
+  workflow_dispatch:
+    inputs:
+      aws_account:
+        description: 'AWS Account ID'
+        required: true
+      aws_region:
+        description: 'AWS Region'
+        required: true
+      provisioned_product_name:
+        description: 'Provisioned Product Name'
+        required: true
+      version:
+        description: 'Product Version'
+        required: true
+      general_configuration:
+        description: 'General Configuration'
+        required: true
+      subdomain:
+        description: 'Subdomain for the CNAME'
+        required: true
+      dns_record_type:
+        description: 'DNS Record Type'
+        required: true
+        default: 'CNAME'
+      dns_name_to_cname:
+        description: 'DNS Name to CNAME'
+        required: true
+ 
+jobs:
+  create_cname:
+    runs-on: ubuntu-latest
+ 
+    permissions:
+      id-token: write
+      contents: read
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+ 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: "arn:aws:iam::${{ github.event.inputs.aws_account }}:role/CICD-GitHubActions-Role"
+          aws-region: ${{ github.event.inputs.aws_region }}
+          role-session-name: ${{ github.actor }}-${{ github.workflow }}
+ 
+      - name: Deploy CloudFormation stack
+        run: |
+          aws cloudformation deploy \
+            --stack-name "route53-cname-${{ github.event.inputs.subdomain }}" \
+            --template-file route53-cname.yml \
+            --parameter-overrides \
+              Subdomain=${{ github.event.inputs.subdomain }} \
+              DNSRecordType=${{ github.event.inputs.dns_record_type }} \
+              DNSNameToCname=${{ github.event.inputs.dns_name_to_cname }} \
+            --capabilities CAPABILITY_NAMED_IAM
+ 
+      - name: Describe CloudFormation stack
+        run: |
+          aws cloudformation describe-stacks --stack-name "route53-cname-${{ github.event.inputs.subdomain }}"
